@@ -1,7 +1,7 @@
 package com.kth.journalsystem.dto;
 
 
-import com.example.patientmicroservice.entities.Condition;
+import com.kth.journalsystem.domain.Condition;
 
 public class ConditionDTO
 {

@@ -1,7 +1,8 @@
 package com.kth.journalsystem.dto;
 
 
-import com.example.patientmicroservice.entities.Encounter;
+
+import com.kth.journalsystem.domain.Encounter;
 
 import java.time.LocalDate;
 import java.util.List;

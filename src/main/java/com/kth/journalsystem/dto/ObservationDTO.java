@@ -1,7 +1,7 @@
 package com.kth.journalsystem.dto;
 
 
-import com.example.patientmicroservice.entities.Observation;
+import com.kth.journalsystem.domain.Observation;
 
 public class ObservationDTO {
     private Long id;
