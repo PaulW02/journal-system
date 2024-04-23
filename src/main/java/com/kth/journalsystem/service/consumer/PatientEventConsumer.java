@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PatientEventConsumer {
     @Autowired
-    private PatientRepository p;
+    private PatientRepository patientRepository;
     @KafkaListener(topics = "order_events", groupId = "order_group")
     public void handleOrderEvent(OrderDTO orderEvent) {
         // Process the order event, e.g., store it in the database
@@ -29,8 +29,9 @@ public class PatientEventConsumer {
 
     @KafkaListener(topics = "create_patient_event", groupId = "patient_group")
     public void handleCreatePatientEvent(PatientDTO patient) {
-        Patient patient1 = new Patient(patient.getFirstName(), patient.getLastName(), patient.getAge());
-        p.save(patient1);
+        Patient createdPatient = new Patient(patient.getFirstName(), patient.getLastName(), patient.getAge(), patient.getUserId());
+        System.out.println(patient + " dwadaddad");
+        patientRepository.save(createdPatient);
     }
 
 

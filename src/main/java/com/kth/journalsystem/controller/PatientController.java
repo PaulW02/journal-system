@@ -21,9 +21,16 @@ public class PatientController {
 
     @PostMapping("/")
     public ResponseEntity<PatientDTO> createPatient(@RequestBody PatientDTO patient) {
-        patientEventProducer.sendCreatePatientEvent(patient);
-        PatientDTO createdPatientDTO = new PatientDTO(patient.getId(), patient.getFirstName(), patient.getLastName(), patient.getAge());
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPatientDTO);
+        try {
+            patientEventProducer.sendCreatePatientEvent(patient);
+            PatientDTO createdPatientDTO = new PatientDTO(patient.getId(), patient.getFirstName(), patient.getLastName(), patient.getAge());
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdPatientDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
+
+
+
 
 }
