@@ -9,4 +9,5 @@ import java.util.List;
 public interface EncounterRepository extends JpaRepository<Encounter, Long> {
     @Query("SELECT e FROM Encounter e WHERE e.patient.id = ?1")
     List<Encounter> getEncountersByPatientId(Long id);
+
 }

@@ -24,8 +24,10 @@ public class Condition
         this.patient = patient;
     }
 
-    public Condition() {
 
+    public Condition(String conditionName, Patient patient) {
+        this.conditionName = conditionName;
+        this.patient = patient;
     }
 
     public Long getId() {
