@@ -24,7 +24,7 @@ public class PatientController {
         return ResponseEntity.ok("Order created successfully");
     }
 
-    @PostMapping("/")
+    @PostMapping("/patient")
     public ResponseEntity<PatientDTO> createPatient(@RequestBody PatientDTO patient) {
         patientEventProducer.sendCreatePatientEvent(patient);
         PatientDTO createdPatientDTO = new PatientDTO(patient.getId(), patient.getFirstName(), patient.getLastName(), patient.getAge());

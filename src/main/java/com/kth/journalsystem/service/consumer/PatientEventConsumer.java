@@ -1,14 +1,18 @@
 package com.kth.journalsystem.service.consumer;
 
+import com.kth.journalsystem.domain.Patient;
 import com.kth.journalsystem.dto.OrderDTO;
 import com.kth.journalsystem.dto.PatientDTO;
 import com.kth.journalsystem.dto.PaymentDTO;
+import com.kth.journalsystem.repository.PatientRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PatientEventConsumer {
-
+    @Autowired
+    private PatientRepository p;
     @KafkaListener(topics = "order_events", groupId = "order_group")
     public void handleOrderEvent(OrderDTO orderEvent) {
         // Process the order event, e.g., store it in the database
@@ -25,8 +29,9 @@ public class PatientEventConsumer {
 
     @KafkaListener(topics = "create_patient_event", groupId = "patient_group")
     public void handleCreatePatientEvent(PatientDTO patient) {
-        // Process the order event, e.g., store it in the database
-        System.out.println("Received Create Patient Event: " + patient);
-        // Implement the logic for order processing and updating inventory
+        Patient patient1 = new Patient(patient.getFirstName(), patient.getLastName(), patient.getAge());
+        p.save(patient1);
     }
+
+
 }
