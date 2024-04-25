@@ -37,8 +37,26 @@ public class PatientController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    @PatchMapping("/{id}")
+    public ResponseEntity<String> updatePatient(@PathVariable Long id, @RequestBody PatientDTO patient){
+        try {
+            patientEventProducer.sendUpdatePatientEvent(id,patient);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Updating patient" + id + ".......");
 
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deletePatient(@PathVariable Long id){
+        try {
+            patientEventProducer.sendDeletePatientEvent(id);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Deleting patient: " + id + ".......");
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(" " + id);
 
+        }
+    }
 
 }

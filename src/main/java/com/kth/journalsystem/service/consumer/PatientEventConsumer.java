@@ -1,17 +1,18 @@
 package com.kth.journalsystem.service.consumer;
 
+import com.kth.journalsystem.domain.Condition;
 import com.kth.journalsystem.domain.Patient;
-import com.kth.journalsystem.dto.OrderDTO;
-import com.kth.journalsystem.dto.PatientDTO;
-import com.kth.journalsystem.dto.PatientRequestDTO;
-import com.kth.journalsystem.dto.PaymentDTO;
+import com.kth.journalsystem.dto.*;
 import com.kth.journalsystem.repository.PatientRepository;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class PatientEventConsumer {
@@ -42,7 +43,7 @@ public class PatientEventConsumer {
         }
     }
 
-    private PatientDTO convertToDTO(Patient patient) {
+     static PatientDTO convertToDTO(Patient patient) {
         // Convert Patient entity to DTO
         // Implement this method based on your DTO structure
         return new PatientDTO(patient.getId(), patient.getFirstName(), patient.getLastName(), patient.getAge());
@@ -53,6 +54,29 @@ public class PatientEventConsumer {
         System.out.println(patient + " dwadaddad");
         patientRepository.save(createdPatient);
     }
+
+    @KafkaListener(topics = "delete_patient_event", groupId = "patient_group")
+    public void handleDeletePatientEvent(Long id) {
+        patientRepository.deleteById(id);
+    }
+
+
+    @KafkaListener(topics = "update_patient_event", groupId = "patient_group")
+    public void handleUpdatePatientEvent(ConsumerRecord<String, PatientDTO> record) {
+        String idString = record.key(); // Extract the patient ID string from the message key
+        Long id = Long.parseLong(idString); // Convert the patient ID string to Long
+        PatientDTO patientDTO = record.value(); // Extract the patient DTO from the message value
+
+        Patient p = new Patient(patientDTO.getFirstName(), patientDTO.getLastName(), patientDTO.getAge());
+        Optional<Patient> existing = patientRepository.findById(id);
+        if (existing.isPresent()) {
+            p.setId(id);
+            patientRepository.save(p);
+        } else {
+            throw new RuntimeException("Can't update patient " + id);
+        }
+    }
+
 
 
 }

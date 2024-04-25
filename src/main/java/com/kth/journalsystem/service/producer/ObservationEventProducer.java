@@ -1,32 +1,34 @@
 package com.kth.journalsystem.service.producer;
 
-import com.kth.journalsystem.dto.OrderDTO;
+import com.kth.journalsystem.dto.ObservationDTO;
 import com.kth.journalsystem.dto.PatientDTO;
-import com.kth.journalsystem.dto.PatientRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
-
 @Service
-public class PatientEventProducer {
+public class ObservationEventProducer
+{
+    private static final String CREATE_OBSERVATION = "create_observation_event";
 
-    private static final String TOPIC = "order_events";
-    private static final String CREATE_PATIENT_TOPIC = "create_patient_event";
-    private static final String UPDATE_PATIENT_TOPIC = "update_patient_event";
-    private static final String READ_PATIENT_TOPIC = "read_patient_event";
-    private static final String DELETE_PATIENT_TOPIC = "delete_patient_event";
-
+    private static final String DELETE_OBSERVATION = "delete_observation_event";
+    private static final String UPDATE_OBSERVATION = "update_observation_event";
+    private static final String READ_OBSERVATION = "read_observation_event";
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
-    public void sendOrderEvent(OrderDTO orderEvent) {
-        kafkaTemplate.send(TOPIC, orderEvent);
-    }
 
-    public void sendCreatePatientEvent(PatientDTO patient) {
-         kafkaTemplate.send(CREATE_PATIENT_TOPIC, patient)
+    public void sendCreateObservationEvent(ObservationDTO observationDTO) {
+        kafkaTemplate.send(CREATE_OBSERVATION, observationDTO)
+                .whenComplete((sendResult, throwable) -> {
+                    if(throwable == null) {
+                        System.out.println(sendResult);
+                    } else {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+    public void sendReadObservationEvent(Long id) {
+        kafkaTemplate.send(READ_OBSERVATION, id)
                 .whenComplete((sendResult, throwable) -> {
                     if(throwable == null) {
                         System.out.println(sendResult);
@@ -36,8 +38,18 @@ public class PatientEventProducer {
                 });
     }
 
-    public void sendReadPatientEvent(Long patientId) {
-        kafkaTemplate.send(READ_PATIENT_TOPIC, patientId)
+    public void sendUpdateObservationEvent(ObservationDTO observationDTO,Long id) {
+        kafkaTemplate.send(UPDATE_OBSERVATION,String.valueOf(id), observationDTO)
+                .whenComplete((sendResult, throwable) -> {
+                    if(throwable == null) {
+                        System.out.println(sendResult);
+                    } else {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+    public void sendDeleteObservation(Long id) {
+        kafkaTemplate.send(DELETE_OBSERVATION,id)
                 .whenComplete((sendResult, throwable) -> {
                     if(throwable == null) {
                         System.out.println(sendResult);
@@ -47,28 +59,6 @@ public class PatientEventProducer {
                 });
     }
 
-
-    public void sendUpdatePatientEvent(Long patientId, PatientDTO updatedPatient) {
-        kafkaTemplate.send(UPDATE_PATIENT_TOPIC, String.valueOf(patientId), updatedPatient)
-                .whenComplete((sendResult, throwable) -> {
-                    if (throwable == null) {
-                        System.out.println(sendResult);
-                    } else {
-                        throwable.printStackTrace();
-                    }
-                });
-    }
-
-    public void sendDeletePatientEvent(Long patientId){
-        kafkaTemplate.send(DELETE_PATIENT_TOPIC, patientId)
-                .whenComplete((sendResult, throwable) -> {
-                    if(throwable == null) {
-                        System.out.println(sendResult);
-                    } else {
-                        throwable.printStackTrace();
-                    }
-                });
-    }
 
 
 }
