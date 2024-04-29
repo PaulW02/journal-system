@@ -11,6 +11,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -75,6 +77,22 @@ public class PatientEventConsumer {
         }
     }
 
-
-
+    @KafkaListener(topics = "read_all_patients_event", groupId = "patient_group")
+    public List<PatientDTO> consumeReadAllPatientsEvent() {
+        List<Patient> patients = patientRepository.findAll();
+        List<PatientDTO> patientDTOS = new ArrayList<>();
+        if (patients != null) {
+            for (Patient patient: patients) {
+                patientDTOS.add(convertToDTO(patient));
+            }
+            logger.info("Getting patients: " + patients);
+            // Send patient data to a response topic
+            //kafkaTemplate.send("patient_response_topic", patientDTO);
+            return patientDTOS;
+        } else {
+            // Handle not found scenario (log or send error response)
+            System.out.println("Patients not found");
+        }
+        return null;
+    }
 }

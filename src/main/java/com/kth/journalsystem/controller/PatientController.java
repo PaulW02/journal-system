@@ -22,6 +22,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/patient")
@@ -61,9 +62,24 @@ public class PatientController {
 
     @GetMapping("/retrieve/{patientId}")
     public ResponseEntity<PatientDTO> getPatientDetails(@PathVariable Long patientId) throws TimeoutException {
-        // Receive message using @KafkaListener on the method itself
         PatientDTO patientDTO = patientEventConsumer.consumeReadEvent(patientId);
         return ResponseEntity.ok(patientDTO);
+    }
+
+
+    @GetMapping("/all")
+    public ResponseEntity<String> getAllPatient() {
+        try {
+            patientEventProducer.sendReadAllPatientsEvent();
+            return ResponseEntity.status(HttpStatus.CREATED).body("Retrieving all patients");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    @GetMapping("/retrieve/all")
+    public ResponseEntity<List<PatientDTO>> retrieveAllPatients() throws TimeoutException {
+        List<PatientDTO> patientDTOs = patientEventConsumer.consumeReadAllPatientsEvent();
+        return ResponseEntity.ok(patientDTOs);
     }
 
     @PatchMapping("/{id}")
