@@ -1,22 +1,43 @@
 package com.kth.journalsystem.controller;
 
-import com.kth.journalsystem.domain.Patient;
-import com.kth.journalsystem.dto.OrderDTO;
+
 import com.kth.journalsystem.dto.PatientDTO;
-import com.kth.journalsystem.dto.PatientRequestDTO;
+import com.kth.journalsystem.service.KeycloakTokenExchangeService;
+import com.kth.journalsystem.service.consumer.PatientEventConsumer;
 import com.kth.journalsystem.service.producer.PatientEventProducer;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.common.errors.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.MessageListener;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
+
+import java.time.Duration;
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/api/patient")
 public class PatientController {
+    private static final Logger logger = LoggerFactory.getLogger(PatientController.class);
 
     @Autowired
     private PatientEventProducer patientEventProducer;
 
+    @Autowired
+    private PatientEventConsumer patientEventConsumer;
+
+    @Autowired
+    private KeycloakTokenExchangeService tokenExchangeService;
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
     @PostMapping("/")
     public ResponseEntity<PatientDTO> createPatient(@RequestBody PatientDTO patient) {
         try {
@@ -37,6 +58,14 @@ public class PatientController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    @GetMapping("/retrieve/{patientId}")
+    public ResponseEntity<PatientDTO> getPatientDetails(@PathVariable Long patientId) throws TimeoutException {
+        // Receive message using @KafkaListener on the method itself
+        PatientDTO patientDTO = patientEventConsumer.consumeReadEvent(patientId);
+        return ResponseEntity.ok(patientDTO);
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<String> updatePatient(@PathVariable Long id, @RequestBody PatientDTO patient){
         try {
@@ -59,4 +88,18 @@ public class PatientController {
         }
     }
 
+    public String exchangeToken(String currentToken, String targetAudience) {
+        return tokenExchangeService.exchangeToken(currentToken, targetAudience);
+    }
+
+    private String extractTokenFromAuthorizationHeader(String authorizationHeader) {
+        // Assuming the Authorization header follows the format "Bearer <token>"
+        String[] parts = authorizationHeader.split(" ");
+        if (parts.length == 2 && parts[0].equalsIgnoreCase("Bearer")) {
+            return parts[1];
+        } else {
+            // Invalid or missing Authorization header
+            throw new IllegalArgumentException("Invalid Authorization header");
+        }
+    }
 }

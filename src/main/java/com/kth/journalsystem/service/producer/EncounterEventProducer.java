@@ -1,13 +1,12 @@
 package com.kth.journalsystem.service.producer;
 
 import com.kth.journalsystem.dto.EncounterDTO;
-import com.kth.journalsystem.dto.ObservationDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-public class EncounterProducer
+public class EncounterEventProducer
 {
     private static final String CREATE = "create_encounter_event";
 

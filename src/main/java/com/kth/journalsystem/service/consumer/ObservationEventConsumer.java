@@ -24,8 +24,7 @@ public class ObservationEventConsumer
     private static final Logger logger = LoggerFactory.getLogger(ObservationEventConsumer.class);
     @Autowired
     private ObservationRepository repository;
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+
 
     @KafkaListener(topics = "create_observation_event", groupId = "observation_group")
     public void handleCreateObservationEvent(ObservationDTO observationDTO) {
@@ -67,7 +66,7 @@ public class ObservationEventConsumer
             ObservationDTO observationDTO = this.convertToDTO(observation);
             logger.info("Getting observation: "+ observation.getId() );
             // Send patient data to the frontend using WebSocket
-            messagingTemplate.convertAndSend("/topic/condition-data", observationDTO);
+            //messagingTemplate.convertAndSend("/topic/condition-data", observationDTO);
         } else {
             // Handle the case where the patient data could not be found
             // For example, log an error message or send an error response

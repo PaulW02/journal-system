@@ -1,6 +1,5 @@
 package com.kth.journalsystem.service.consumer;
 
-import com.kth.journalsystem.domain.Condition;
 import com.kth.journalsystem.domain.Patient;
 import com.kth.journalsystem.dto.*;
 import com.kth.journalsystem.repository.PatientRepository;
@@ -9,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -23,25 +22,24 @@ public class PatientEventConsumer {
     private PatientRepository patientRepository;
 
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-
+    private KafkaTemplate<String, Object> kafkaTemplate;
     @KafkaListener(topics = "read_patient_event", groupId = "patient_group")
-    public void consumeReadEvent(Long patientId) {
-
+    public PatientDTO consumeReadEvent(Long patientId) {
         Patient patient = patientRepository.findById(patientId).orElse(null);
 
         if (patient != null) {
-            // Process the retrieved patient data
             PatientDTO patientDTO = convertToDTO(patient);
-            logger.info("Getting patient: "+ patientDTO.getFirstName() + patientDTO.getLastName());
-            // Send patient data to the frontend using WebSocket
-            messagingTemplate.convertAndSend("/topic/patient-data", patientDTO);
+            logger.info("Getting patient: " + patientDTO.getFirstName() + patientDTO.getLastName());
+            // Send patient data to a response topic
+            //kafkaTemplate.send("patient_response_topic", patientDTO);
+            return patientDTO;
         } else {
-            // Handle the case where the patient data could not be found
-            // For example, log an error message or send an error response
+            // Handle not found scenario (log or send error response)
             System.out.println("Patient not found for ID: " + patientId);
         }
+        return null;
     }
+
 
      static PatientDTO convertToDTO(Patient patient) {
         // Convert Patient entity to DTO

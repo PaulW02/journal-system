@@ -20,8 +20,7 @@ public class ConditionEventConsumer
     private static final Logger logger = LoggerFactory.getLogger(ConditionEventConsumer.class);
     @Autowired
     private ConditionRepository repository;
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+
 
     @KafkaListener(topics = "create_condition_event", groupId = "condition_group")
     public void handleCreateConditionEvent(ConditionDTO conditionDTO) {
@@ -56,7 +55,7 @@ public class ConditionEventConsumer
             ConditionDTO conditionDTO = this.convertToDTO(condition);
             logger.info("Getting condition: "+ condition.getId() +condition.getConditionName());
             // Send patient data to the frontend using WebSocket
-            messagingTemplate.convertAndSend("/topic/condition-data", conditionDTO);
+//            messagingTemplate.convertAndSend("/topic/condition-data", conditionDTO);
         } else {
             // Handle the case where the patient data could not be found
             // For example, log an error message or send an error response

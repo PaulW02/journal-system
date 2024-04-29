@@ -22,8 +22,6 @@ public class EncounterEventConsumer
     private static final Logger logger = LoggerFactory.getLogger(EncounterEventConsumer.class);
     @Autowired
     private EncounterRepository repository;
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
 
     @KafkaListener(topics = "create_encounter_event", groupId = "encounter_group")
     public void handleCreateEncounterEvent(EncounterDTO encounterDTO) {
@@ -65,7 +63,7 @@ public class EncounterEventConsumer
             EncounterDTO encounterDTO = this.convertToDTO(encounter);
             logger.info("Getting encounter: "+ encounterDTO.getId() );
             // Send patient data to the frontend using WebSocket
-            messagingTemplate.convertAndSend("/topic/condition-data", encounterDTO);
+            //messagingTemplate.convertAndSend("/topic/condition-data", encounterDTO);
         } else {
             // Handle the case where the patient data could not be found
             // For example, log an error message or send an error response
