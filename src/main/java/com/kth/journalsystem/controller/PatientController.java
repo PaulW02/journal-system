@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.MessageListener;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -52,6 +54,8 @@ public class PatientController {
 
     @GetMapping("/")
     public ResponseEntity<String> getPatient(@RequestParam("patientId") Long patientId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        logger.info("TESST " + authentication);
         try {
             patientEventProducer.sendReadPatientEvent(patientId);
             return ResponseEntity.status(HttpStatus.CREATED).body("Retrieving patient with id: " + patientId);
