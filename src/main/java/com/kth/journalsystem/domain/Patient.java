@@ -22,7 +22,7 @@ public class Patient {
     private Integer age;
 
 
-
+    //tessssssssst
     @OneToMany(mappedBy = "patient")
     private List<Condition> conditions = new ArrayList<>();
 
