@@ -1,0 +1,15 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          my-oauth2-client:
+            provider: keycloak
+            client-id: journal
+            client-secret: LjP8xAwif2mAy7UGw7GjJpc5sdPItayE
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_basic
+            scope: openid,profile
+        provider:
+          my-auth-server:
+            issuer-uri: http://localhost:8181/realms/Journal
