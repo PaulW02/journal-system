@@ -23,4 +23,13 @@ public interface PatientRepository extends JpaRepository<Patient, Long>
      @Query("SELECT e FROM Patient e WHERE e.userId = ?1")
      Patient getPatientByUserId(String id);
 
+     @Query("SELECT p.id AS id, p.firstName AS firstName, p.lastName AS lastName, p.age AS age, " +
+             "c AS conditions, o AS observations, e AS encounters " +
+             "FROM Patient p " +
+             "LEFT JOIN p.conditions c " +
+             "LEFT JOIN p.observations o " +
+             "LEFT JOIN p.encounters e " +
+             "WHERE p.id = :patientId")
+     Patient findPatientDetailsById(Long patientId);
+
 }

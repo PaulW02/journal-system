@@ -40,7 +40,7 @@ public class ConditionEventConsumer
             throw new RuntimeException("Can't update condition " + id);
         }
     }
-    private ConditionDTO convertToDTO(Condition condition) {
+    static ConditionDTO convertConditionToDTO(Condition condition) {
         // Convert Patient entity to DTO
         // Implement this method based on your DTO structure
         return new ConditionDTO(condition.getId(), condition.getConditionName(), PatientEventConsumer.convertToDTO(condition.getPatient()));
@@ -52,7 +52,7 @@ public class ConditionEventConsumer
 
         if (condition != null) {
             // Process the retrieved patient data
-            ConditionDTO conditionDTO = this.convertToDTO(condition);
+            ConditionDTO conditionDTO = convertConditionToDTO(condition);
             logger.info("Getting condition: "+ condition.getId() +condition.getConditionName());
             // Send patient data to the frontend using WebSocket
 //            messagingTemplate.convertAndSend("/topic/condition-data", conditionDTO);

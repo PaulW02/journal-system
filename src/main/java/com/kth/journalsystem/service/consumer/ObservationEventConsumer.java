@@ -49,7 +49,7 @@ public class ObservationEventConsumer
             throw new RuntimeException("Can't update observation " + id);
         }
     }
-    private ObservationDTO convertToDTO(Observation observation) {
+    static ObservationDTO convertToDTO(Observation observation) {
         // Convert Patient entity to DTO
         // Implement this method based on your DTO structure
         return new ObservationDTO(observation.getId().toString(), observation.getValue(), PatientEventConsumer.convertToDTO(observation.getPatient()));
@@ -63,7 +63,7 @@ public class ObservationEventConsumer
 
         if (observation != null) {
             // Process the retrieved patient data
-            ObservationDTO observationDTO = this.convertToDTO(observation);
+            ObservationDTO observationDTO = convertToDTO(observation);
             logger.info("Getting observation: "+ observation.getId() );
             // Send patient data to the frontend using WebSocket
             //messagingTemplate.convertAndSend("/topic/condition-data", observationDTO);

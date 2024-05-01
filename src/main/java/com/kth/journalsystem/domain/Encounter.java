@@ -19,19 +19,10 @@ public class Encounter {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient; // Relation till Patient-entiteten
     // New field for file handling
-    @Lob
-    @Column(name = "image_data")
-    private byte[] imageData;
 
 
 
-    public byte[] getImageData() {
-        return imageData;
-    }
 
-    public void setImageData(byte[] imageData) {
-        this.imageData = imageData;
-    }
 
     public Encounter(LocalDate visitDate, Patient patient) {
         this.visitDate = visitDate;

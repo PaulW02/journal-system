@@ -46,7 +46,7 @@ public class EncounterEventConsumer
             throw new RuntimeException("Can't update observation " + id);
         }
     }
-    private EncounterDTO convertToDTO(Encounter encounter) {
+    static EncounterDTO convertToDTO(Encounter encounter) {
         // Convert Patient entity to DTO
         // Implement this method based on your DTO structure
         return new EncounterDTO(encounter.getId(),encounter.getVisitDate(), PatientEventConsumer.convertToDTO(encounter.getPatient()));
@@ -60,7 +60,7 @@ public class EncounterEventConsumer
 
         if (encounter != null) {
             // Process the retrieved patient data
-            EncounterDTO encounterDTO = this.convertToDTO(encounter);
+            EncounterDTO encounterDTO = convertToDTO(encounter);
             logger.info("Getting encounter: "+ encounterDTO.getId() );
             // Send patient data to the frontend using WebSocket
             //messagingTemplate.convertAndSend("/topic/condition-data", encounterDTO);
