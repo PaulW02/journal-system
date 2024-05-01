@@ -1,9 +1,17 @@
 package com.kth.journalsystem.service.consumer;
 
+import com.kth.journalsystem.domain.Condition;
+import com.kth.journalsystem.domain.Encounter;
+import com.kth.journalsystem.domain.Observation;
 import com.kth.journalsystem.domain.Patient;
 import com.kth.journalsystem.dto.*;
+import com.kth.journalsystem.repository.ConditionRepository;
+import com.kth.journalsystem.repository.EncounterRepository;
+import com.kth.journalsystem.repository.ObservationRepository;
 import com.kth.journalsystem.repository.PatientRepository;
+import jakarta.transaction.Transactional;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +30,39 @@ public class PatientEventConsumer {
 
     @Autowired
     private PatientRepository patientRepository;
+    @Autowired
+    private ObservationRepository repository;
+    @Autowired
+
+    private EncounterRepository encounterRepository;
+    @Autowired
+
+    private ConditionRepository conditionRepository;
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
     @KafkaListener(topics = "read_patient_event", groupId = "patient_group")
-    public PatientDTO consumeReadEvent(Long patientId) {
+    public PatientDetailsDTO consumeReadEvent(Long patientId) {
         Patient patient = patientRepository.findById(patientId).orElse(null);
-
+        List<Encounter> encounters = patient.getEncounters();
+        List<Observation> observations = patient.getObservations();
+        List<Condition> conditions = patient.getConditions();
         if (patient != null) {
-            PatientDTO patientDTO = convertToDTO(patient);
+            List<ConditionDTO> conditionDTOS = new ArrayList<>();
+            List<ObservationDTO> observationDTOS = new ArrayList<>();
+            List<EncounterDTO> encounterDTOS = new ArrayList<>();
+
+            for (Condition condition : conditions) {
+                conditionDTOS.add(ConditionEventConsumer.convertConditionToDTO(condition));
+            }
+            for (Encounter encounter : encounters) {
+                encounterDTOS.add(EncounterEventConsumer.convertToDTO(encounter));
+            }
+            for (Observation observation : observations) {
+                observationDTOS.add(ObservationEventConsumer.convertToDTO(observation));
+            }
+
+            PatientDetailsDTO patientDTO = new PatientDetailsDTO(patient.getId(), conditionDTOS,observationDTOS,encounterDTOS, patient.getFirstName(), patient.getLastName(), patient.getAge());
             logger.info("Getting patient: " + patientDTO.getFirstName() + patientDTO.getLastName());
             // Send patient data to a response topic
             //kafkaTemplate.send("patient_response_topic", patientDTO);
@@ -48,6 +80,7 @@ public class PatientEventConsumer {
         // Implement this method based on your DTO structure
         return new PatientDTO(patient.getId(), patient.getFirstName(), patient.getLastName(), patient.getAge());
     }
+
     @KafkaListener(topics = "create_patient_event", groupId = "patient_group")
     public void handleCreatePatientEvent(PatientDTO patient) {
         Patient createdPatient = new Patient(patient.getFirstName(), patient.getLastName(), patient.getAge(), patient.getUserId());

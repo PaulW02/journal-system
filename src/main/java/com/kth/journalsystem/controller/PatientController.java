@@ -4,6 +4,7 @@ package com.kth.journalsystem.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.kth.journalsystem.config.AccessTokenUser;
 import com.kth.journalsystem.dto.PatientDTO;
+import com.kth.journalsystem.dto.PatientDetailsDTO;
 import com.kth.journalsystem.service.KeycloakTokenExchangeService;
 import com.kth.journalsystem.service.consumer.PatientEventConsumer;
 import com.kth.journalsystem.service.producer.PatientEventProducer;
@@ -66,10 +67,10 @@ public class PatientController {
 
     @GetMapping("/retrieve/{patientId}")
     @PreAuthorize("hasRole('ROLE_doctor')")
-    public ResponseEntity<PatientDTO> getPatientDetails(@PathVariable Long patientId) throws TimeoutException {
+    public ResponseEntity<PatientDetailsDTO> getPatientDetails(@PathVariable Long patientId) throws TimeoutException {
 
         logger.warn("Token1: " + SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-        PatientDTO patientDTO = patientEventConsumer.consumeReadEvent(patientId);
+        PatientDetailsDTO patientDTO = patientEventConsumer.consumeReadEvent(patientId);
         return ResponseEntity.ok(patientDTO);
     }
     @GetMapping("/all")
