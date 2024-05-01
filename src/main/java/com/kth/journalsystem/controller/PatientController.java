@@ -40,16 +40,14 @@ public class PatientController {
 
     @Autowired
     private KeycloakTokenExchangeService keycloakTokenExchangeService;
-    private final RestTemplate restTemplate = new RestTemplateBuilder().build();
-
     @PostMapping("/")
     @PreAuthorize("hasRole('ROLE_doctor')")
-    public ResponseEntity<PatientDTO> createPatient(@RequestBody PatientDTO patient) {
+    public ResponseEntity<String> createPatient(@RequestBody PatientDTO patient) {
         try {
-            PatientDTO createdPatientDTO = new PatientDTO(patient.getId(), patient.getFirstName(), patient.getLastName(), patient.getAge());
-            createdPatientDTO.setAccessTokenUser(AccessTokenUser.convert(SecurityContextHolder.getContext()));
-            patientEventProducer.sendCreatePatientEvent(createdPatientDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdPatientDTO);
+            AccessTokenUser accessTokenUser = AccessTokenUser.convert(SecurityContextHolder.getContext());
+            patient.setAccessTokenUser(accessTokenUser);
+            patientEventProducer.sendCreatePatientEvent(patient);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Creating the patient");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -80,9 +78,7 @@ public class PatientController {
         try {
             AccessTokenUser accessTokenUser = AccessTokenUser.convert(SecurityContextHolder.getContext());
             logger.warn("Token: " + accessTokenUser);
-            Map response = keycloakTokenExchangeService.getLimitedScopeToken(accessTokenUser.getToken());
-            accessTokenUser.setScopes(Arrays.stream(response.get("scope").toString().split(" ")).toList());
-            accessTokenUser.setToken(response.get("access_token").toString());
+            accessTokenUser = keycloakTokenExchangeService.getLimitedScopeToken(accessTokenUser);
             logger.warn("Tokenexchagne : " + accessTokenUser);
             patientEventProducer.sendReadAllPatientsEvent();
             return ResponseEntity.status(HttpStatus.CREATED).body("Retrieving all patients");

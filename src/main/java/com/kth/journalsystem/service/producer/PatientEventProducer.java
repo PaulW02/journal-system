@@ -3,11 +3,15 @@ package com.kth.journalsystem.service.producer;
 import com.kth.journalsystem.dto.OrderDTO;
 import com.kth.journalsystem.dto.PatientDTO;
 import com.kth.journalsystem.dto.PatientRequestDTO;
+import com.kth.journalsystem.service.KeycloakTokenExchangeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -22,13 +26,17 @@ public class PatientEventProducer {
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
-    public void sendOrderEvent(OrderDTO orderEvent) {
-        kafkaTemplate.send(TOPIC, orderEvent);
-    }
+
+    @Autowired
+    private KeycloakTokenExchangeService keycloakTokenExchangeService;
 
     public void sendCreatePatientEvent(PatientDTO patient) {
-         kafkaTemplate.send(CREATE_PATIENT_TOPIC, patient);
+        patient.setAccessTokenUser(keycloakTokenExchangeService.getLimitedScopeToken(patient.getAccessTokenUser()));
+        List<String> scopes = patient.getAccessTokenUser().getScopes();
+        if(scopes.size() == 1 && scopes.get(0).equals("patient")){
+            kafkaTemplate.send(CREATE_PATIENT_TOPIC, patient);
 
+        }
     }
 
     public void sendReadPatientEvent(Long patientId) {
