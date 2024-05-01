@@ -74,35 +74,13 @@ public class PatientController {
         PatientDTO patientDTO = patientEventConsumer.consumeReadEvent(patientId);
         return ResponseEntity.ok(patientDTO);
     }
-
-    private Map getLimitedScopeToken(String token) throws RestClientException {
-        String url = "http://localhost:8181/realms/Journal/protocol/openid-connect/token";
-        String clientId = "journal";
-        String clientSecret = "LjP8xAwif2mAy7UGw7GjJpc5sdPItayE";
-        String scope = "patient"; // Replace with your specific scope
-
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange");
-        body.add("client_id", clientId);
-        body.add("client_secret", clientSecret);
-        body.add("subject_token", token);
-        body.add("subject_token_type", "urn:ietf:params:oauth:token-type:access_token");
-        body.add("scope", scope);
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
-        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
-
-        return response.getBody();
-    }
     @GetMapping("/all")
     @PreAuthorize("hasRole('ROLE_doctor')")
     public ResponseEntity<String> getAllPatient() {
         try {
             AccessTokenUser accessTokenUser = AccessTokenUser.convert(SecurityContextHolder.getContext());
             logger.warn("Token: " + accessTokenUser);
-            Map response = getLimitedScopeToken(accessTokenUser.getToken());
+            Map response = keycloakTokenExchangeService.getLimitedScopeToken(accessTokenUser.getToken());
             accessTokenUser.setScopes(Arrays.stream(response.get("scope").toString().split(" ")).toList());
             accessTokenUser.setToken(response.get("access_token").toString());
             logger.warn("Tokenexchagne : " + accessTokenUser);

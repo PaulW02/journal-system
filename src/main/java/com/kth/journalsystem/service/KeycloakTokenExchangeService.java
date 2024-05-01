@@ -17,7 +17,7 @@ public class KeycloakTokenExchangeService {
     private static final String CLIENT_SECRET = "LjP8xAwif2mAy7UGw7GjJpc5sdPItayE";
     private final RestTemplate restTemplate = new RestTemplateBuilder().build();
 
-    private Map getLimitedScopeToken(String token) throws RestClientException {
+    public Map getLimitedScopeToken(String token) throws RestClientException {
         String url = TOKEN_EXCHANGE_URL;
         String clientId = CLIENT_ID;
         String clientSecret = CLIENT_SECRET;
