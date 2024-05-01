@@ -27,14 +27,8 @@ public class PatientEventProducer {
     }
 
     public void sendCreatePatientEvent(PatientDTO patient) {
-         kafkaTemplate.send(CREATE_PATIENT_TOPIC, patient)
-                .whenComplete((sendResult, throwable) -> {
-                    if(throwable == null) {
-                        System.out.println(sendResult);
-                    } else {
-                        throwable.printStackTrace();
-                    }
-                });
+         kafkaTemplate.send(CREATE_PATIENT_TOPIC, patient);
+
     }
 
     public void sendReadPatientEvent(Long patientId) {

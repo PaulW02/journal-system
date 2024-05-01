@@ -15,6 +15,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -38,15 +39,16 @@ public class PatientController {
     private PatientEventConsumer patientEventConsumer;
 
     @Autowired
-    private KeycloakTokenExchangeService tokenExchangeService;
-
+    private KeycloakTokenExchangeService keycloakTokenExchangeService;
     private final RestTemplate restTemplate = new RestTemplateBuilder().build();
 
     @PostMapping("/")
+    @PreAuthorize("hasRole('ROLE_doctor')")
     public ResponseEntity<PatientDTO> createPatient(@RequestBody PatientDTO patient) {
         try {
-            patientEventProducer.sendCreatePatientEvent(patient);
             PatientDTO createdPatientDTO = new PatientDTO(patient.getId(), patient.getFirstName(), patient.getLastName(), patient.getAge());
+            createdPatientDTO.setAccessTokenUser(AccessTokenUser.convert(SecurityContextHolder.getContext()));
+            patientEventProducer.sendCreatePatientEvent(createdPatientDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdPatientDTO);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -54,9 +56,9 @@ public class PatientController {
     }
 
     @GetMapping("/")
+    @PreAuthorize("hasRole('ROLE_doctor')")
     public ResponseEntity<String> getPatient(@RequestParam("patientId") Long patientId) {
         try {
-
             patientEventProducer.sendReadPatientEvent(patientId);
             return ResponseEntity.status(HttpStatus.CREATED).body("Retrieving patient with id: " + patientId);
         } catch (Exception e) {
@@ -65,6 +67,7 @@ public class PatientController {
     }
 
     @GetMapping("/retrieve/{patientId}")
+    @PreAuthorize("hasRole('ROLE_doctor')")
     public ResponseEntity<PatientDTO> getPatientDetails(@PathVariable Long patientId) throws TimeoutException {
 
         logger.warn("Token1: " + SecurityContextHolder.getContext().getAuthentication().getPrincipal());
@@ -72,7 +75,7 @@ public class PatientController {
         return ResponseEntity.ok(patientDTO);
     }
 
-    private Map getLimitedScopeToken(String token) throws RestClientException, JsonProcessingException {
+    private Map getLimitedScopeToken(String token) throws RestClientException {
         String url = "http://localhost:8181/realms/Journal/protocol/openid-connect/token";
         String clientId = "journal";
         String clientSecret = "LjP8xAwif2mAy7UGw7GjJpc5sdPItayE";
@@ -93,7 +96,8 @@ public class PatientController {
 
         return response.getBody();
     }
-    @RequestMapping(value = "/all", method = RequestMethod.GET)
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ROLE_doctor')")
     public ResponseEntity<String> getAllPatient() {
         try {
             AccessTokenUser accessTokenUser = AccessTokenUser.convert(SecurityContextHolder.getContext());
@@ -108,8 +112,8 @@ public class PatientController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
-    @RequestMapping(value = "/retrieve/all", method = RequestMethod.GET)
-    @PreAuthorize("hasRole('doctor')")
+    @GetMapping("/retrieve/all")
+    @PreAuthorize("hasRole('ROLE_doctor')")
     public ResponseEntity<List<PatientDTO>> retrieveAllPatients() {
         AccessTokenUser accessTokenUser = AccessTokenUser.convert(SecurityContextHolder.getContext());
         logger.warn("Token2: " + accessTokenUser);
@@ -118,6 +122,7 @@ public class PatientController {
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_doctor')")
     public ResponseEntity<String> updatePatient(@PathVariable Long id, @RequestBody PatientDTO patient){
         try {
             patientEventProducer.sendUpdatePatientEvent(id,patient);
@@ -129,6 +134,7 @@ public class PatientController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_doctor')")
     public ResponseEntity<String> deletePatient(@PathVariable Long id){
         try {
             patientEventProducer.sendDeletePatientEvent(id);
@@ -136,21 +142,6 @@ public class PatientController {
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(" " + id);
 
-        }
-    }
-
-    public String exchangeToken(String currentToken, String targetAudience) {
-        return tokenExchangeService.exchangeToken(currentToken, targetAudience);
-    }
-
-    private String extractTokenFromAuthorizationHeader(String authorizationHeader) {
-        // Assuming the Authorization header follows the format "Bearer <token>"
-        String[] parts = authorizationHeader.split(" ");
-        if (parts.length == 2 && parts[0].equalsIgnoreCase("Bearer")) {
-            return parts[1];
-        } else {
-            // Invalid or missing Authorization header
-            throw new IllegalArgumentException("Invalid Authorization header");
         }
     }
 }

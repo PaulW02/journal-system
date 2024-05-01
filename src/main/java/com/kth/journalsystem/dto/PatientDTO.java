@@ -1,8 +1,10 @@
 package com.kth.journalsystem.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kth.journalsystem.config.AccessTokenUser;
 
 public class PatientDTO {
+    private AccessTokenUser accessTokenUser;
     private Long id;
     private String firstName;
     private String lastName;
@@ -21,6 +23,14 @@ public class PatientDTO {
         this.lastName = lastName;
         this.age = age;
         this.userId = userId;
+    }
+
+    public AccessTokenUser getAccessTokenUser() {
+        return accessTokenUser;
+    }
+
+    public void setAccessTokenUser(AccessTokenUser accessTokenUser) {
+        this.accessTokenUser = accessTokenUser;
     }
 
     public Long getId() {
